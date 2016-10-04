@@ -105,7 +105,7 @@ void printProgressBar(int percentage) {
 }
 
 /*
- * Flash the backlight two times rapidly.
+ * Flashes the backlight two times rapidly.
  */ 
 void flashScreen() {
   for(int i = 0; i< 2; i++) {
