@@ -1,9 +1,17 @@
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
+#include <DHT.h>
+
+// DHT sensor type
+#define DHTTYPE DHT11
+#define DHTPIN 2      // digital pin
 
 // Pins configuration for LCD board connection via I2C interface: 
 // address, en, rw, rs, d4, d5, d6, d7, bl, blpol
 LiquidCrystal_I2C lcd(0x3F, 2, 1, 0, 4, 5, 6, 7, 3, POSITIVE);
+
+// Init DHT sensor
+DHT dht(DHTPIN, DHTTYPE);
 
 // Configure custom characters maps
 uint8_t high[8] = {
@@ -47,6 +55,9 @@ void setup() {
   // Print constant elements of the LCD display
   lcd.setCursor(1,0);
   lcd.print("Soil Moisture: --");
+
+  // Start dht measurement 
+  dht.begin();
 }
 
 void loop() {
@@ -55,6 +66,7 @@ void loop() {
   printCurrentReadValue(current_read);
   printProgressBar(current_read);
   printStatus(current_read);
+  printTempAndHumidity(getTempInCelcius(), getHumidity());
 }
 
 /*
@@ -105,6 +117,20 @@ void printProgressBar(int percentage) {
 }
 
 /*
+ * Prints current temperature and humidity on LCD second line 
+ */
+void printTempAndHumidity(float temp, float humidity) {
+  lcd.setCursor(0,2);
+
+  lcd.print("T: " 
+    + String(temp, 2) 
+    + (char)223 + "C" // degree symbol
+    + "  H: "
+    + String(humidity, 2) 
+    + "%");
+}
+
+/*
  * Flashes the backlight two times rapidly.
  */ 
 void flashScreen() {
@@ -115,5 +141,27 @@ void flashScreen() {
     lcd.backlight();
     delay(100);
   }
+}
+
+/*
+ * Return current temperature in Celcius or -1.0 in case of communication error.
+ */
+float getTempInCelcius() {
+  float temp = dht.readTemperature();
+  if (!isnan(temp))
+    return temp;
+  else 
+    return -1.0;
+}
+
+/*
+ * Return current humidity or -1.0 in case of communication error.
+ */
+float getHumidity() {
+  float humidity = dht.readHumidity();
+  if (!isnan(humidity))
+    return humidity;
+  else 
+    return -1.0;
 }
 
